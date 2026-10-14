@@ -1,0 +1,1261 @@
+<div class="aura-app-layout">
+
+  <!-- ================= TOPBAR HEADER ================= -->
+  <header class="aura-header no-print">
+    <div class="container-fluid header-content">
+      
+      <!-- Brand with Real Official Logo Image -->
+      <div class="brand-wrapper">
+        <div class="logo-box" title="Aura Analytics">
+          <img src="aura-logo.jpg" alt="Aura Logo Oficial" class="logo-img" />
+        </div>
+        <div class="brand-text">
+          <div class="brand-title-row">
+            <span class="brand-name">AURA</span>
+            <span class="brand-badge">ANALYTICS</span>
+            <span class="enterprise-tag">Soles (PEN S/.)</span>
+          </div>
+          <p class="brand-subtitle">Reportes, Indicadores de Personal y Costos para Gerencia</p>
+        </div>
+      </div>
+
+      <!-- Live Search & Global Filters & Actions -->
+      <div class="header-actions">
+        
+        <!-- Live Search Input -->
+        <div class="search-box">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input 
+            type="text" 
+            class="search-input" 
+            placeholder="Buscar área, métrica o costo..." 
+            [value]="searchQueryText" 
+            (input)="onSearch($event)" 
+          />
+          @if (searchQueryText) {
+            <button class="clear-search-btn" (click)="clearSearch()">&times;</button>
+          }
+        </div>
+
+        <!-- Period Selector -->
+        <div class="filter-group">
+          <label class="filter-label">Período:</label>
+          <select class="aura-select" (change)="onPeriodChange($event)">
+            <option value="Q3-2026">Q3 - 2026 (Actual)</option>
+            <option value="Q2-2026">Q2 - 2026</option>
+            <option value="Q1-2026">Q1 - 2026</option>
+            <option value="Anual-2026">Consolidado 2026</option>
+          </select>
+        </div>
+
+        <!-- Department Filter -->
+        <div class="filter-group">
+          <label class="filter-label">Área:</label>
+          <select class="aura-select" (change)="onDepartmentChange($event)">
+            <option value="Todos">Todas las Áreas</option>
+            <option value="Tecnología">Tecnología & Producto</option>
+            <option value="Operaciones">Operaciones & Logística</option>
+            <option value="Comercial">Comercial & Ventas</option>
+            <option value="Finanzas">Finanzas & Admin</option>
+            <option value="Gestión">Gestión de Talento</option>
+          </select>
+        </div>
+
+        <!-- Quick Actions & Reset Button -->
+        <div class="btn-group">
+          <button class="btn btn-secondary btn-sm" (click)="resetDemo()" title="Restablecer datos originales en Soles">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path></svg>
+            Restablecer
+          </button>
+
+          <button class="btn btn-secondary btn-sm" (click)="exportCSV()" title="Descargar datos en Soles (CSV)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Exportar CSV
+          </button>
+
+          <button class="btn btn-primary btn-sm" (click)="printReport()" title="Generar Informe Oficial PDF">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Informe PDF
+          </button>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs-bar">
+      <div class="container-fluid tabs-container">
+        <button 
+          class="tab-btn" 
+          [class.active]="currentTab() === 'resumen'"
+          (click)="setTab('resumen')">
+          <span class="tab-icon">📊</span>
+          <span>Resumen Ejecutivo</span>
+        </button>
+
+        <button 
+          class="tab-btn" 
+          [class.active]="currentTab() === 'personal'"
+          (click)="setTab('personal')">
+          <span class="tab-icon">👥</span>
+          <span>Indicadores de Personal</span>
+          <span class="tab-badge">{{ departments().length }}</span>
+        </button>
+
+        <button 
+          class="tab-btn" 
+          [class.active]="currentTab() === 'estadisticas'"
+          (click)="setTab('estadisticas')">
+          <span class="tab-icon">📈</span>
+          <span>Estadísticas Operativas</span>
+        </button>
+
+        <button 
+          class="tab-btn" 
+          [class.active]="currentTab() === 'costos'"
+          (click)="setTab('costos')">
+          <span class="tab-icon">💰</span>
+          <span>Costos & Presupuestos (S/.)</span>
+          <span class="tab-badge">{{ costCategories().length }}</span>
+        </button>
+
+        <button 
+          class="tab-btn" 
+          [class.active]="currentTab() === 'comparativas'"
+          (click)="setTab('comparativas')">
+          <span class="tab-icon">⚖️</span>
+          <span>Comparativas de Períodos</span>
+          <span class="tab-badge">{{ periodComparisons().length }}</span>
+        </button>
+
+        <button 
+          class="tab-btn highlight-tab" 
+          [class.active]="currentTab() === 'informes'"
+          (click)="setTab('informes')">
+          <span class="tab-icon">📑</span>
+          <span>Informes para Gerencia</span>
+          <span class="pulse-indicator"></span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ================= PRINT HEADER (ONLY VISIBLE ON PRINT/PDF) ================= -->
+  <div class="print-header" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #DC2626; padding-bottom: 12px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; gap: 15px;">
+        <img src="aura-logo.jpg" alt="Aura Logo" style="width: 48px; height: 48px; border-radius: 8px;" />
+        <div>
+          <h1 style="color: #0B192C; font-size: 22px; margin: 0; font-weight: 800;">AURA ANALYTICS — INFORME GERENCIAL</h1>
+          <p style="color: #64748b; font-size: 13px; margin: 3px 0 0 0;">Reporte Consolidado en Soles (PEN S/.) | Capital Humano, Costos y Rendimiento</p>
+        </div>
+      </div>
+      <div style="text-align: right;">
+        <span style="background: #DC2626; color: #FFFFFF; padding: 4px 10px; font-weight: bold; border-radius: 4px; font-size: 12px;">CONFIDENCIAL</span>
+        <div style="font-size: 12px; color: #64748b; margin-top: 5px;">Fecha: 14 de Octubre de 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="main-body container-fluid">
+
+    <!-- Toast Notification -->
+    @if (showNotification()) {
+      <div class="toast-notification">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        <span>{{ showNotification() }}</span>
+      </div>
+    }
+
+    <!-- ---------------------------------------------------- -->
+    <!-- TAB 1: RESUMEN EJECUTIVO (OVERVIEW)                  -->
+    <!-- ---------------------------------------------------- -->
+    @if (currentTab() === 'resumen') {
+      <section class="tab-section fade-in">
+        
+        <!-- Top Metrics Cards in Soles -->
+        <div class="kpi-grid">
+          @for (kpi of kpis(); track kpi.id) {
+            <div class="aura-card kpi-card">
+              <div class="kpi-header">
+                <span class="kpi-title">{{ kpi.title }}</span>
+                <span class="badge" [class.badge-success]="kpi.isPositive" [class.badge-danger]="!kpi.isPositive">
+                  {{ kpi.change > 0 ? '+' : '' }}{{ kpi.change }}%
+                </span>
+              </div>
+              <div class="kpi-value">{{ kpi.value }}</div>
+              <div class="kpi-footer">
+                <span class="kpi-period">{{ kpi.periodText }}</span>
+                @if (kpi.subtitle) {
+                  <span class="kpi-sub">{{ kpi.subtitle }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Charts Row -->
+        <div class="grid-2-cols mt-4">
+          
+          <!-- Cost vs Budget Trend Chart -->
+          <div class="aura-card chart-card">
+            <div class="card-heading">
+              <div>
+                <h3 class="card-title">Tendencia de Costos Operativos vs. Presupuesto</h3>
+                <p class="card-desc">Evolución mensual consolidada en Soles (PEN S/.)</p>
+              </div>
+              <span class="badge badge-red">Ejecución: 97.2%</span>
+            </div>
+            <div class="canvas-container">
+              <canvas #trendChartCanvas></canvas>
+            </div>
+          </div>
+
+          <!-- Headcount Distribution Chart -->
+          <div class="aura-card chart-card">
+            <div class="card-heading">
+              <div>
+                <h3 class="card-title">Distribución de Personal por Área</h3>
+                <p class="card-desc">Participación de colaboradores por división</p>
+              </div>
+              <span class="badge badge-info">{{ analytics.totalHeadcount() }} Colaboradores</span>
+            </div>
+            <div class="canvas-container">
+              <canvas #deptDistributionCanvas></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Strategic Alert Banner for Management -->
+        <div class="executive-alert-card mt-4">
+          <div class="alert-icon-col">
+            <div class="alert-badge-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path></svg>
+            </div>
+          </div>
+          <div class="alert-content-col">
+            <div class="alert-title-row">
+              <h4>Alerta Clave para Gerencia — Ahorro en Horas Extras & Estabilidad Operativa</h4>
+              <span class="badge badge-success">Impacto Favorable</span>
+            </div>
+            <p>
+              Durante el presente corte, las horas extras se redujeron en un <strong>18.5%</strong> a nivel corporativo, con un ahorro directo de <strong>S/. 33,060</strong>. La retención de talento en perfiles de ingeniería se ubica en <strong>98.2%</strong>.
+            </p>
+          </div>
+          <div class="alert-cta-col">
+            <button class="btn btn-outline-red btn-sm" (click)="setTab('informes')">
+              Ver Informe Completo →
+            </button>
+          </div>
+        </div>
+
+      </section>
+    }
+
+    <!-- ---------------------------------------------------- -->
+    <!-- TAB 2: INDICADORES DE PERSONAL (WITH FULL CRUD)      -->
+    <!-- ---------------------------------------------------- -->
+    @if (currentTab() === 'personal') {
+      <section class="tab-section fade-in">
+        
+        <div class="section-title-bar">
+          <div>
+            <h2 class="section-title">Indicadores de Personal & Capital Humano</h2>
+            <p class="section-desc">Gestiona, edita y analiza colaboradores, rotación y costo per cápita en Soles (S/.)</p>
+          </div>
+          <div class="d-flex align-center gap-2">
+            <button class="btn btn-primary" (click)="openCreateDeptModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              + Nuevo Departamento
+            </button>
+          </div>
+        </div>
+
+        <!-- Detailed Department Table with Edit / Delete Actions -->
+        <div class="aura-card mt-3">
+          <div class="table-title-row">
+            <div>
+              <h3 class="card-title">Desglose por Departamento / Unidad de Negocio</h3>
+              <p class="card-desc">Mostrando {{ departments().length }} registros</p>
+            </div>
+            <span class="badge badge-info">Filtro: {{ selectedDepartment() }}</span>
+          </div>
+          
+          <div class="aura-table-container">
+            <table class="aura-table">
+              <thead>
+                <tr>
+                  <th>Departamento</th>
+                  <th>Colaboradores</th>
+                  <th>Vacantes</th>
+                  <th>Rotación %</th>
+                  <th>Retención %</th>
+                  <th>Costo Prom. / Pers.</th>
+                  <th>Nómina Total (S/.)</th>
+                  <th>Productividad</th>
+                  <th>eNPS Clima</th>
+                  <th>Horas Extras</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (dept of departments(); track dept.id) {
+                  <tr>
+                    <td>
+                      <div class="dept-name-cell">
+                        <span class="dept-dot"></span>
+                        <strong>{{ dept.department }}</strong>
+                      </div>
+                    </td>
+                    <td><span class="value-highlight">{{ dept.headcount }}</span></td>
+                    <td><span class="badge badge-warning">+{{ dept.openPositions }}</span></td>
+                    <td>
+                      <span [class.text-success]="dept.turnoverRate <= 2.5" [class.text-danger]="dept.turnoverRate > 3.5">
+                        {{ dept.turnoverRate }}%
+                      </span>
+                    </td>
+                    <td><span class="text-success font-semibold">{{ dept.retentionRate }}%</span></td>
+                    <td>S/. {{ dept.avgCostPerEmployee.toLocaleString() }}</td>
+                    <td><strong>S/. {{ dept.totalPayroll.toLocaleString() }}</strong></td>
+                    <td>
+                      <div class="progress-cell">
+                        <span>{{ dept.productivityScore }}%</span>
+                        <div class="progress-bar-bg">
+                          <div class="progress-fill" [style.width.%]="dept.productivityScore"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td><span class="badge badge-success">+{{ dept.satisfactionRate }}</span></td>
+                    <td>{{ dept.overtimeHours }} hrs</td>
+                    
+                    <!-- CRUD Action Buttons -->
+                    <td style="text-align: right;">
+                      <div class="action-btn-group">
+                        <button class="icon-btn edit-btn" (click)="openEditDeptModal(dept)" title="Editar Departamento">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                          Editar
+                        </button>
+                        <button class="icon-btn delete-btn" (click)="deleteDept(dept)" title="Eliminar Departamento">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="11" class="text-center py-4 text-muted">
+                      No se encontraron departamentos con el criterio actual. Haz clic en <strong>+ Nuevo Departamento</strong> para agregar uno.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Radar & Productivity Visual -->
+        <div class="grid-2-cols mt-4">
+          <div class="aura-card chart-card">
+            <div class="card-heading">
+              <div>
+                <h3 class="card-title">Matriz de Productividad y Retención</h3>
+                <p class="card-desc">Comparativa multieje por área</p>
+              </div>
+            </div>
+            <div class="canvas-container">
+              <canvas #productivityChartCanvas></canvas>
+            </div>
+          </div>
+
+          <div class="aura-card">
+            <h3 class="card-title mb-3">Diagnóstico de Talento & Gestión de Riesgos</h3>
+            <div class="risk-card-item">
+              <div class="risk-bullet high"></div>
+              <div>
+                <strong>Demanda en Tecnología & Producto:</strong>
+                <p>Existe alta demanda en el mercado para desarrolladores senior. Se recomienda revisión de bandas salariales para evitar fuga de talento en el último trimestre.</p>
+              </div>
+            </div>
+            <div class="risk-card-item">
+              <div class="risk-bullet success"></div>
+              <div>
+                <strong>Alta Eficiencia en Operaciones & Logística:</strong>
+                <p>Las horas extras disminuyeron un 30% gracias a la automatización de procesos de despacho. La satisfacción de turno subió 12 puntos.</p>
+              </div>
+            </div>
+            <div class="risk-card-item">
+              <div class="risk-bullet info"></div>
+              <div>
+                <strong>Plan de Capacitación Continua:</strong>
+                <p>87% de los empleados completaron los cursos obligatorios de cumplimiento normativo y herramientas digitales Aura.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    }
+
+    <!-- ---------------------------------------------------- -->
+    <!-- TAB 3: ESTADÍSTICAS OPERATIVAS                       -->
+    <!-- ---------------------------------------------------- -->
+    @if (currentTab() === 'estadisticas') {
+      <section class="tab-section fade-in">
+        
+        <div class="section-title-bar">
+          <div>
+            <h2 class="section-title">Estadísticas de Rendimiento Operacional</h2>
+            <p class="section-desc">Monitoreo continuo de SLAs, productividad, ausentismo y efectividad en Soles (PEN)</p>
+          </div>
+        </div>
+
+        <!-- Operational Metrics Cards -->
+        <div class="stats-cards-row">
+          <div class="stat-pill-card">
+            <span class="stat-label">SLA Cumplido Global</span>
+            <span class="stat-number text-success">98.4%</span>
+            <span class="stat-foot">Meta: > 95%</span>
+          </div>
+
+          <div class="stat-pill-card">
+            <span class="stat-label">Proyectos Entregados a Tiempo</span>
+            <span class="stat-number">94.2%</span>
+            <span class="stat-foot">+3.8% vs Q2</span>
+          </div>
+
+          <div class="stat-pill-card">
+            <span class="stat-label">Tasa de Ausentismo No Programado</span>
+            <span class="stat-number text-success">1.4%</span>
+            <span class="stat-foot">Bajo control histórico</span>
+          </div>
+
+          <div class="stat-pill-card">
+            <span class="stat-label">Índice de Clima eNPS</span>
+            <span class="stat-number text-primary">+68</span>
+            <span class="stat-foot">Nivel Excelente</span>
+          </div>
+        </div>
+
+        <!-- Monthly Trends Table -->
+        <div class="aura-card mt-4">
+          <div class="card-heading mb-3">
+            <div>
+              <h3 class="card-title">Registro Histórico Mensual de Costos y Eficiencia</h3>
+              <p class="card-desc">Evolución en Soles (PEN S/.)</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" (click)="exportCSV()">
+              Descargar Serie en CSV
+            </button>
+          </div>
+
+          <div class="aura-table-container">
+            <table class="aura-table">
+              <thead>
+                <tr>
+                  <th>Mes</th>
+                  <th>Costo Nómina (S/.)</th>
+                  <th>Gasto Operativo (S/.)</th>
+                  <th>Costo Total Real (S/.)</th>
+                  <th>Presupuesto Base (S/.)</th>
+                  <th>Variación Presupuestaria</th>
+                  <th>Headcount</th>
+                  <th>Índice Productividad</th>
+                  <th>Rotación Mensual</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (trend of monthlyTrends(); track trend.id) {
+                  <tr>
+                    <td><strong>{{ trend.month }} 2026</strong></td>
+                    <td>S/. {{ trend.payrollCost.toLocaleString() }}</td>
+                    <td>S/. {{ trend.operationalCost.toLocaleString() }}</td>
+                    <td><strong>S/. {{ trend.totalCost.toLocaleString() }}</strong></td>
+                    <td>S/. {{ trend.budget.toLocaleString() }}</td>
+                    <td>
+                      <span class="badge" [class.badge-success]="trend.totalCost <= trend.budget" [class.badge-danger]="trend.totalCost > trend.budget">
+                        {{ ((trend.totalCost - trend.budget) / trend.budget * 100).toFixed(1) }}%
+                      </span>
+                    </td>
+                    <td>{{ trend.headcount }}</td>
+                    <td><span class="text-success">{{ trend.productivityIndex }}%</span></td>
+                    <td>{{ trend.turnover }}%</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    }
+
+    <!-- ---------------------------------------------------- -->
+    <!-- TAB 4: COSTOS & PRESUPUESTOS (WITH FULL CRUD)        -->
+    <!-- ---------------------------------------------------- -->
+    @if (currentTab() === 'costos') {
+      <section class="tab-section fade-in">
+        
+        <div class="section-title-bar">
+          <div>
+            <h2 class="section-title">Estructura de Costos & Análisis Presupuestario (Soles PEN)</h2>
+            <p class="section-desc">Auditoría, edición y control de partidas presupuestarias en Soles (S/.)</p>
+          </div>
+          <div class="d-flex align-center gap-2">
+            <button class="btn btn-primary" (click)="openCreateCostModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              + Nueva Partida Presupuestaria
+            </button>
+          </div>
+        </div>
+
+        <div class="budget-totals-box mb-3">
+          <div class="budget-item">
+            <span>Presupuesto Aprobado:</span>
+            <strong>S/. {{ analytics.totalBudgetedCost().toLocaleString() }}</strong>
+          </div>
+          <div class="budget-item">
+            <span>Gasto Ejecutado Real:</span>
+            <strong class="text-primary">S/. {{ analytics.totalActualCost().toLocaleString() }}</strong>
+          </div>
+          <div class="budget-item">
+            <span>Ahorro / Superávit:</span>
+            <strong class="text-success">S/. {{ (analytics.totalBudgetedCost() - analytics.totalActualCost()).toLocaleString() }}</strong>
+          </div>
+        </div>
+
+        <!-- Cost Categories Table with Actions -->
+        <div class="aura-card mt-3">
+          <div class="card-heading mb-3">
+            <div>
+              <h3 class="card-title">Control de Partidas Presupuestarias</h3>
+              <p class="card-desc">Mostrando {{ costCategories().length }} partidas</p>
+            </div>
+            <span class="badge badge-success">96.8% Ejecutado</span>
+          </div>
+
+          <div class="aura-table-container">
+            <table class="aura-table">
+              <thead>
+                <tr>
+                  <th>Concepto / Partida</th>
+                  <th>Área Imputable</th>
+                  <th>Presupuesto (S/.)</th>
+                  <th>Gasto Real (S/.)</th>
+                  <th>Variación (S/.)</th>
+                  <th>Variación %</th>
+                  <th>Estado</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of costCategories(); track c.id) {
+                  <tr>
+                    <td><strong>{{ c.category }}</strong></td>
+                    <td><span class="badge badge-info">{{ c.department }}</span></td>
+                    <td>S/. {{ c.budgeted.toLocaleString() }}</td>
+                    <td><strong>S/. {{ c.actual.toLocaleString() }}</strong></td>
+                    <td [class.text-success]="c.variance <= 0" [class.text-danger]="c.variance > 0">
+                      {{ c.variance > 0 ? '+' : '' }}S/. {{ c.variance.toLocaleString() }}
+                    </td>
+                    <td>
+                      <span class="badge" [class.badge-success]="c.variancePercentage <= 0" [class.badge-warning]="c.variancePercentage > 0 && c.variancePercentage < 15" [class.badge-danger]="c.variancePercentage >= 15">
+                        {{ c.variancePercentage > 0 ? '+' : '' }}{{ c.variancePercentage }}%
+                      </span>
+                    </td>
+                    <td>
+                      @if (c.status === 'on_track') {
+                        <span class="badge badge-success">En Meta</span>
+                      } @else if (c.status === 'warning') {
+                        <span class="badge badge-warning">Atención</span>
+                      } @else {
+                        <span class="badge badge-danger">Desviación</span>
+                      }
+                    </td>
+
+                    <!-- CRUD Action Buttons -->
+                    <td style="text-align: right;">
+                      <div class="action-btn-group">
+                        <button class="icon-btn edit-btn" (click)="openEditCostModal(c)" title="Editar Partida">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                          Editar
+                        </button>
+                        <button class="icon-btn delete-btn" (click)="deleteCost(c)" title="Eliminar Partida">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="8" class="text-center py-4 text-muted">
+                      No hay partidas registradas. Haz clic en <strong>+ Nueva Partida Presupuestaria</strong> para agregar una.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Projections in Soles -->
+        <div class="grid-2-cols mt-4">
+          <div class="aura-card">
+            <h3 class="card-title mb-2">Proyección Financiera de Cierre Anual</h3>
+            <p class="card-desc mb-3">Estimación actuarial calculada en Soles (PEN S/.)</p>
+            <ul class="projection-list">
+              <li>
+                <span>Proyección Cierre Nómina Anual:</span>
+                <strong>S/. 21,964,000</strong>
+              </li>
+              <li>
+                <span>Margen de Ahorro Proyectado:</span>
+                <strong class="text-success">S/. 433,200 (2.1%)</strong>
+              </li>
+              <li>
+                <span>Costo Promedio Proyectado por Persona:</span>
+                <strong>S/. 7,334 / Mes</strong>
+              </li>
+              <li>
+                <span>Fondo de Contingencia Disponible:</span>
+                <strong>S/. 323,000</strong>
+              </li>
+            </ul>
+          </div>
+
+          <div class="aura-card">
+            <h3 class="card-title mb-2">Estrategias de Optimización Recomendadas</h3>
+            <div class="opt-step">
+              <span class="opt-num">1</span>
+              <div>
+                <strong>Consolidación de Beneficios & EPS:</strong>
+                <p>Renegociación de pólizas de salud corporativa al superar la marca de 240 colaboradores para obtener 5% de descuento adicional.</p>
+              </div>
+            </div>
+            <div class="opt-step">
+              <span class="opt-num">2</span>
+              <div>
+                <strong>Alineación de Bonos por Desempeño:</strong>
+                <p>Vincular bonificaciones semestrales a satisfacción de cliente y cumplimiento de SLA para maximizar el ROI del talento comercial.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    }
+
+    <!-- ---------------------------------------------------- -->
+    <!-- TAB 5: COMPARATIVAS ENTRE PERÍODOS (WITH FULL CRUD)  -->
+    <!-- ---------------------------------------------------- -->
+    @if (currentTab() === 'comparativas') {
+      <section class="tab-section fade-in">
+        
+        <div class="section-title-bar">
+          <div>
+            <h2 class="section-title">Comparativas entre Períodos (Q3 vs Q2 2026)</h2>
+            <p class="section-desc">Gestiona y agrega métricas para comparación de variaciones absolutas y porcentuales</p>
+          </div>
+          
+          <div class="d-flex align-center gap-2">
+            <button class="btn btn-primary" (click)="openCreateCompModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              + Añadir Métrica a Comparar
+            </button>
+          </div>
+        </div>
+
+        <!-- Comparison Chart Canvas -->
+        <div class="aura-card chart-card mt-3">
+          <div class="card-heading">
+            <h3 class="card-title">Comparativa Visual de Métricas Clave</h3>
+            <span class="badge badge-info">Variación Absoluta Lado a Lado</span>
+          </div>
+          <div class="canvas-container" style="height: 280px;">
+            <canvas #comparisonChartCanvas></canvas>
+          </div>
+        </div>
+
+        <!-- Comparative Metrics Table with Actions -->
+        <div class="aura-card mt-4">
+          <div class="card-heading mb-3">
+            <div>
+              <h3 class="card-title">Matriz Comparativa de Variaciones</h3>
+              <p class="card-desc">Mostrando {{ periodComparisons().length }} métricas comparativas</p>
+            </div>
+            <button class="btn btn-secondary btn-sm" (click)="exportCSV()">
+              Exportar Matriz (CSV)
+            </button>
+          </div>
+
+          <div class="aura-table-container">
+            <table class="aura-table">
+              <thead>
+                <tr>
+                  <th>Métrica Evaluada</th>
+                  <th>Categoría</th>
+                  <th>Período Actual (Q3)</th>
+                  <th>Período Anterior (Q2)</th>
+                  <th>Diferencia Absoluta</th>
+                  <th>Variación %</th>
+                  <th>Tendencia</th>
+                  <th>Impacto</th>
+                  <th style="text-align: right;">Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of periodComparisons(); track item.id) {
+                  <tr>
+                    <td><strong>{{ item.metric }}</strong></td>
+                    <td><span class="badge badge-info">{{ item.category }}</span></td>
+                    <td><strong>{{ item.periodAValue.toLocaleString() }} {{ item.unit }}</strong></td>
+                    <td>{{ item.periodBValue.toLocaleString() }} {{ item.unit }}</td>
+                    <td [class.text-success]="item.isFavorable" [class.text-danger]="!item.isFavorable">
+                      {{ item.absoluteDiff > 0 ? '+' : '' }}{{ item.absoluteDiff.toLocaleString() }} {{ item.unit }}
+                    </td>
+                    <td>
+                      <span class="badge" [class.badge-success]="item.isFavorable" [class.badge-danger]="!item.isFavorable">
+                        {{ item.percentageDiff > 0 ? '+' : '' }}{{ item.percentageDiff.toFixed(2) }}%
+                      </span>
+                    </td>
+                    <td>
+                      @if (item.trend === 'up') {
+                        <span class="trend-icon text-success">▲ Sube</span>
+                      } @else if (item.trend === 'down') {
+                        <span class="trend-icon" [class.text-success]="item.isFavorable" [class.text-danger]="!item.isFavorable">▼ Baja</span>
+                      } @else {
+                        <span class="trend-icon text-muted">― Neutro</span>
+                      }
+                    </td>
+                    <td>
+                      <span class="badge" [class.badge-success]="item.isFavorable" [class.badge-danger]="!item.isFavorable">
+                        {{ item.isFavorable ? 'Favorable' : 'Desfavorable' }}
+                      </span>
+                    </td>
+
+                    <!-- CRUD Action Buttons -->
+                    <td style="text-align: right;">
+                      <div class="action-btn-group">
+                        <button class="icon-btn edit-btn" (click)="openEditCompModal(item)" title="Editar Métrica">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                          Editar
+                        </button>
+                        <button class="icon-btn delete-btn" (click)="deleteComp(item)" title="Eliminar Métrica">
+                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="9" class="text-center py-4 text-muted">
+                      No hay métricas comparativas. Haz clic en <strong>+ Añadir Métrica a Comparar</strong> para crear una.
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </section>
+    }
+
+    <!-- ---------------------------------------------------- -->
+    <!-- TAB 6: INFORMES PARA GERENCIA (WITH FULL CRUD)       -->
+    <!-- ---------------------------------------------------- -->
+    @if (currentTab() === 'informes') {
+      <section class="tab-section fade-in print-ready-section">
+        
+        <div class="report-controls-bar no-print">
+          <div>
+            <h2 class="section-title">Centro de Informes Ejecutivos para Gerencia</h2>
+            <p class="section-desc">Documento oficial estructurado en Soles (PEN S/.) para toma de decisiones</p>
+          </div>
+          <div class="btn-group">
+            <button class="btn btn-secondary" (click)="openCreateRecModal()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              + Nueva Recomendación
+            </button>
+            <button class="btn btn-secondary" (click)="exportCSV()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+              Descargar Datos (CSV)
+            </button>
+            <button class="btn btn-primary" (click)="printReport()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+              Imprimir / Guardar como PDF
+            </button>
+          </div>
+        </div>
+
+        <!-- Formal Executive Document -->
+        <div class="aura-card executive-document-card mt-3">
+          
+          <!-- Document Header -->
+          <div class="doc-header">
+            <div class="doc-brand">
+              <div class="logo-box-doc">
+                <img src="aura-logo.jpg" alt="Aura Logo Oficial" class="logo-img" />
+              </div>
+              <div>
+                <h1 class="doc-main-title">AURA ANALYTICS</h1>
+                <p class="doc-sub">INFORME GERENCIAL CONSOLIDADO DE CAPITAL HUMANO Y COSTOS (SOLES)</p>
+              </div>
+            </div>
+
+            <div class="doc-meta-info">
+              <div class="meta-row"><span>Período Evaluado:</span> <strong>{{ report().currentPeriod }}</strong></div>
+              <div class="meta-row"><span>Período Base:</span> <strong>{{ report().comparisonPeriod }}</strong></div>
+              <div class="meta-row"><span>Fecha Emisión:</span> <strong>{{ report().generatedAt }}</strong></div>
+              <div class="meta-row"><span>Moneda:</span> <strong>Soles Peruanos (PEN S/.)</strong></div>
+            </div>
+          </div>
+
+          <div class="doc-divider"></div>
+
+          <!-- 1. Executive Summary -->
+          <div class="doc-section">
+            <h3 class="doc-section-heading">1. RESUMEN EJECUTIVO</h3>
+            <p class="doc-text lead-text">
+              {{ report().executiveSummary }}
+            </p>
+          </div>
+
+          <!-- 2. High-Impact KPIs Summary -->
+          <div class="doc-section mt-4">
+            <h3 class="doc-section-heading">2. SÍNTESIS DE INDICADORES PRINCIPALES (SOLES S/.)</h3>
+            <div class="doc-kpis-row">
+              <div class="doc-kpi-item">
+                <span class="label">Headcount Total</span>
+                <span class="value">{{ analytics.totalHeadcount() }}</span>
+                <span class="badge badge-success">+6.4% Neto</span>
+              </div>
+              <div class="doc-kpi-item">
+                <span class="label">Nómina Mensual</span>
+                <span class="value">S/. {{ analytics.totalPayroll().toLocaleString() }}</span>
+                <span class="badge badge-success">-2.1% Optimizado</span>
+              </div>
+              <div class="doc-kpi-item">
+                <span class="label">Rotación Anualizada</span>
+                <span class="value">2.8%</span>
+                <span class="badge badge-success">Bajo Control</span>
+              </div>
+              <div class="doc-kpi-item">
+                <span class="label">Productividad Global</span>
+                <span class="value">{{ analytics.averageProductivity() }}%</span>
+                <span class="badge badge-success">Meta Cumplida</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3. Key Findings -->
+          <div class="doc-section mt-4">
+            <h3 class="doc-section-heading">3. HALLAZGOS ESTRATÉGICOS Y LOGROS CLAVE</h3>
+            <ul class="doc-bullet-list">
+              @for (finding of report().keyFindings; track finding) {
+                <li>
+                  <svg class="check-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                  <span>{{ finding }}</span>
+                </li>
+              }
+            </ul>
+          </div>
+
+          <!-- 4. Operational Risks -->
+          <div class="doc-section mt-4">
+            <h3 class="doc-section-heading">4. MATRIZ DE RIESGOS Y ATENCIÓN PRIORITARIA</h3>
+            <div class="risk-block">
+              @for (risk of report().operationalRisks; track risk) {
+                <div class="risk-entry">
+                  <span class="risk-tag">ALERTA</span>
+                  <span>{{ risk }}</span>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- 5. Recommendations & Action Plan (WITH CRUD ACTIONS) -->
+          <div class="doc-section mt-4">
+            <div class="d-flex justify-between align-center mb-2">
+              <h3 class="doc-section-heading" style="margin-bottom: 0;">5. PLAN DE ACCIÓN Y RECOMENDACIONES GERENCIALES</h3>
+              <button class="btn btn-outline-red btn-sm no-print" (click)="openCreateRecModal()">
+                + Agregar Recomendación
+              </button>
+            </div>
+
+            <div class="aura-table-container">
+              <table class="aura-table">
+                <thead>
+                  <tr>
+                    <th>Prioridad</th>
+                    <th>Acción Estratégica</th>
+                    <th>Área Responsable</th>
+                    <th>Impacto Proyectado (S/.)</th>
+                    <th>Estado</th>
+                    <th class="no-print" style="text-align: right;">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (rec of report().recommendations; track rec.id) {
+                    <tr>
+                      <td>
+                        <span class="badge" [class.badge-danger]="rec.priority === 'Alta'" [class.badge-warning]="rec.priority === 'Media'" [class.badge-info]="rec.priority === 'Baja'">
+                          {{ rec.priority }}
+                        </span>
+                      </td>
+                      <td><strong>{{ rec.action }}</strong></td>
+                      <td><span class="badge badge-info">{{ rec.department }}</span></td>
+                      <td><span class="text-success">{{ rec.estimatedImpact }}</span></td>
+                      <td>
+                        <span class="badge" [class.badge-success]="rec.status === 'Aprobado'" [class.badge-warning]="rec.status === 'En Progreso'" [class.badge-secondary]="rec.status === 'Pendiente'">
+                          {{ rec.status }}
+                        </span>
+                      </td>
+
+                      <!-- CRUD Actions -->
+                      <td class="no-print" style="text-align: right;">
+                        <div class="action-btn-group">
+                          <button class="icon-btn edit-btn" (click)="openEditRecModal(rec)" title="Editar Recomendación">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+                            Editar
+                          </button>
+                          <button class="icon-btn delete-btn" (click)="deleteRec(rec)" title="Eliminar Recomendación">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Eliminar
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="6" class="text-center py-4 text-muted">
+                        No hay recomendaciones registradas. Haz clic en <strong>+ Agregar Recomendación</strong>.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Digital Signatures Footer -->
+          <div class="doc-signatures-row mt-5">
+            <div class="sig-box">
+              <div class="sig-line"></div>
+              <strong>Dirección General</strong>
+              <span>Aura Analytics</span>
+            </div>
+            <div class="sig-box">
+              <div class="sig-line"></div>
+              <strong>Dirección de Finanzas & Presupuestos</strong>
+              <span>Aura Analytics</span>
+            </div>
+            <div class="sig-box">
+              <div class="sig-line"></div>
+              <strong>Dirección de Gestión de Talento</strong>
+              <span>Aura Analytics</span>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+    }
+
+  </main>
+
+  <!-- ================= MODAL: DEPARTAMENTO (CREAR / EDITAR) ================= -->
+  @if (showDeptModal()) {
+    <div class="modal-backdrop fade-in" (click)="showDeptModal.set(false)">
+      <div class="modal-dialog aura-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+          <div class="d-flex align-center gap-2">
+            <span class="modal-icon">👥</span>
+            <h3 class="modal-title">{{ deptModalMode === 'create' ? 'Nuevo Departamento' : 'Editar Departamento' }}</h3>
+          </div>
+          <button class="close-btn" (click)="showDeptModal.set(false)">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label">Nombre del Departamento / Área *:</label>
+            <input type="text" class="form-control" placeholder="Ej. Operaciones & Logística" [(ngModel)]="currentDeptForm.department" />
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Colaboradores (Headcount):</label>
+              <input type="number" class="form-control" min="1" [(ngModel)]="currentDeptForm.headcount" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Vacantes Abiertas:</label>
+              <input type="number" class="form-control" min="0" [(ngModel)]="currentDeptForm.openPositions" />
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Costo Promedio / Persona (S/.):</label>
+              <input type="number" class="form-control" min="0" [(ngModel)]="currentDeptForm.avgCostPerEmployee" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Nómina Total Mensual (S/.):</label>
+              <input type="number" class="form-control" min="0" [(ngModel)]="currentDeptForm.totalPayroll" />
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Tasa Rotación (%):</label>
+              <input type="number" step="0.1" class="form-control" [(ngModel)]="currentDeptForm.turnoverRate" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Tasa Retención (%):</label>
+              <input type="number" step="0.1" class="form-control" [(ngModel)]="currentDeptForm.retentionRate" />
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Score Productividad (%):</label>
+              <input type="number" step="0.1" class="form-control" [(ngModel)]="currentDeptForm.productivityScore" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Clima Laboral eNPS:</label>
+              <input type="number" class="form-control" [(ngModel)]="currentDeptForm.satisfactionRate" />
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Horas Extras Acumuladas:</label>
+              <input type="number" class="form-control" [(ngModel)]="currentDeptForm.overtimeHours" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Ausentismo (%):</label>
+              <input type="number" step="0.1" class="form-control" [(ngModel)]="currentDeptForm.absenteeismRate" />
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showDeptModal.set(false)">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveDept()">Guardar Cambios</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================= MODAL: PARTIDA DE COSTO (CREAR / EDITAR) ================= -->
+  @if (showCostModal()) {
+    <div class="modal-backdrop fade-in" (click)="showCostModal.set(false)">
+      <div class="modal-dialog aura-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+          <div class="d-flex align-center gap-2">
+            <span class="modal-icon">💰</span>
+            <h3 class="modal-title">{{ costModalMode === 'create' ? 'Nueva Partida Presupuestaria' : 'Editar Partida de Costo' }}</h3>
+          </div>
+          <button class="close-btn" (click)="showCostModal.set(false)">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label">Concepto / Partida *:</label>
+            <input type="text" class="form-control" placeholder="Ej. Bonos y Comisiones Comerciales" [(ngModel)]="currentCostForm.category" />
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Área Imputable:</label>
+            <input type="text" class="form-control" placeholder="Ej. Comercial & Ventas" [(ngModel)]="currentCostForm.department" />
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Presupuesto Aprobado (S/.):</label>
+              <input type="number" class="form-control" min="0" [(ngModel)]="currentCostForm.budgeted" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Gasto Real Ejecutado (S/.):</label>
+              <input type="number" class="form-control" min="0" [(ngModel)]="currentCostForm.actual" />
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">Estado Presupuestario:</label>
+            <select class="form-control" [(ngModel)]="currentCostForm.status">
+              <option value="on_track">En Meta (Bajo Control)</option>
+              <option value="warning">Atención (Alerta Moderada)</option>
+              <option value="danger">Desviación (Excedido)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showCostModal.set(false)">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveCost()">Guardar Partida</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================= MODAL: COMPARATIVA DE PERÍODOS (CREAR / EDITAR) ================= -->
+  @if (showCompModal()) {
+    <div class="modal-backdrop fade-in" (click)="showCompModal.set(false)">
+      <div class="modal-dialog aura-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+          <div class="d-flex align-center gap-2">
+            <span class="modal-icon">⚖️</span>
+            <h3 class="modal-title">{{ compModalMode === 'create' ? 'Nueva Métrica Comparativa' : 'Editar Métrica Comparativa' }}</h3>
+          </div>
+          <button class="close-btn" (click)="showCompModal.set(false)">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label">Nombre de la Métrica *:</label>
+            <input type="text" class="form-control" placeholder="Ej. Horas Extras en Operaciones" [(ngModel)]="currentCompForm.metric" />
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Categoría:</label>
+              <select class="form-control" [(ngModel)]="currentCompForm.category">
+                <option value="Personal">Personal</option>
+                <option value="Costos">Costos</option>
+                <option value="Operaciones">Operaciones</option>
+              </select>
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Unidad de Medida:</label>
+              <input type="text" class="form-control" placeholder="Ej. S/., %, Horas" [(ngModel)]="currentCompForm.unit" />
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Valor Período Actual (Q3):</label>
+              <input type="number" step="0.1" class="form-control" [(ngModel)]="currentCompForm.periodAValue" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Valor Período Anterior (Q2):</label>
+              <input type="number" step="0.1" class="form-control" [(ngModel)]="currentCompForm.periodBValue" />
+            </div>
+          </div>
+
+          <div class="form-group mb-3">
+            <label class="form-label">¿La variación actual es favorable para el negocio?:</label>
+            <select class="form-control" [(ngModel)]="currentCompForm.isFavorable">
+              <option [ngValue]="true">Sí, Impacto Favorable</option>
+              <option [ngValue]="false">No, Impacto Desfavorable</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showCompModal.set(false)">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveComp()">Guardar Métrica</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================= MODAL: RECOMENDACIÓN GERENCIAL (CREAR / EDITAR) ================= -->
+  @if (showRecModal()) {
+    <div class="modal-backdrop fade-in" (click)="showRecModal.set(false)">
+      <div class="modal-dialog aura-card" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+          <div class="d-flex align-center gap-2">
+            <span class="modal-icon">📑</span>
+            <h3 class="modal-title">{{ recModalMode === 'create' ? 'Nueva Recomendación Directiva' : 'Editar Recomendación' }}</h3>
+          </div>
+          <button class="close-btn" (click)="showRecModal.set(false)">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group mb-3">
+            <label class="form-label">Acción Estratégica Sugerida *:</label>
+            <textarea class="form-control" rows="3" placeholder="Describe la medida recomendada para la gerencia..." [(ngModel)]="currentRecForm.action"></textarea>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Área Responsable:</label>
+              <input type="text" class="form-control" placeholder="Ej. Operaciones & Finanzas" [(ngModel)]="currentRecForm.department" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Prioridad:</label>
+              <select class="form-control" [(ngModel)]="currentRecForm.priority">
+                <option value="Alta">Alta</option>
+                <option value="Media">Media</option>
+                <option value="Baja">Baja</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row mb-3">
+            <div class="form-group flex-1">
+              <label class="form-label">Impacto Estimado en Soles (S/.):</label>
+              <input type="text" class="form-control" placeholder="Ej. Ahorro de S/. 120,000" [(ngModel)]="currentRecForm.estimatedImpact" />
+            </div>
+            <div class="form-group flex-1">
+              <label class="form-label">Estado:</label>
+              <select class="form-control" [(ngModel)]="currentRecForm.status">
+                <option value="Pendiente">Pendiente</option>
+                <option value="En Progreso">En Progreso</option>
+                <option value="Aprobado">Aprobado</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="showRecModal.set(false)">Cancelar</button>
+          <button class="btn btn-primary" (click)="saveRec()">Guardar Recomendación</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- ================= MODAL: CONFIRMACIÓN DE ELIMINACIÓN ================= -->
+  @if (showDeleteConfirmModal()) {
+    <div class="modal-backdrop fade-in" (click)="cancelDelete()">
+      <div class="modal-dialog aura-card delete-dialog" (click)="$event.stopPropagation()">
+        
+        <div class="modal-header">
+          <div class="d-flex align-center gap-2">
+            <div class="delete-icon-badge">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+            </div>
+            <h3 class="modal-title">Confirmar Eliminación</h3>
+          </div>
+          <button class="close-btn" (click)="cancelDelete()">&times;</button>
+        </div>
+
+        <div class="modal-body">
+          <p class="delete-msg">{{ deleteTitle }}</p>
+          <p class="delete-sub">Esta acción modificará los reportes gerenciales y se sincronizará de inmediato.</p>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="cancelDelete()">Cancelar</button>
+          <button class="btn btn-primary" (click)="executeDelete()" style="background: #dc2626;">Sí, Eliminar Registro</button>
+        </div>
+
+      </div>
+    </div>
+  }
+
+</div>
